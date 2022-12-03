@@ -1,8 +1,10 @@
-# This is a sample Python script.
+from warnings import filterwarnings
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
+import tweepy
+import json
+import os
+import pandas as pd
+import numpy as np
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
