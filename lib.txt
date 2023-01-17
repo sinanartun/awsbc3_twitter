@@ -1,0 +1,26 @@
+pip3 install mysql-connector-python
+pip3 install flair
+pip3 install pandas
+pip3 install numpy
+pip3 install SQLAlchemy
+pip3 install tweepy
+pip3 install python-dotenv
+pip3 install fastapi
+pip3 install "uvicorn[standard]"
+pip3 install "fastapi[all]"
+uvicorn twapi:app --host 0.0.0.0 --port 8000 --reload
+
+
+pip install mysql-connector-python
+pip install flair
+pip install pandas
+pip install numpy
+pip install SQLAlchemy
+pip install tweepy
+pip install python-dotenv
+pip install fastapi
+
+
+pip3.9 install fastapi
+pip3.9  install "uvicorn[standard]"
+pip3.9  install "fastapi[all]"

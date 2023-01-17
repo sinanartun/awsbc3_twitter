@@ -5,6 +5,7 @@ import json
 import os
 import pandas as pd
 import numpy as np
+import uvicorn
 
 # To make sentiment analysis
 from flair.models import TextClassifier
@@ -12,8 +13,30 @@ from flair.data import Sentence
 
 import mysql.connector
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
+from fastapi import FastAPI, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+origins = [
+    "*"
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
+load_dotenv()
+
+
+consumer_key = os.environ['API_Key']
+consumer_secret = os.environ['API_Key_Secret']
+access_token = os.environ['Access_Token']
+access_token_secret = os.environ['Access_Token_Secret']
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -28,16 +51,16 @@ api = tweepy.API(auth)
 
 # users= input('Please Enter: ')
 
-users = "BBCWorld"
+users = "elonmusk"
 public_tweets = []
 all = []
 
 
 def dbfonk(df):
     engine = create_engine(
-        'mysql+mysqlconnector://username:pass@final.cluster-ciwzdfrp1kms.eu-central-1.rds.amazonaws.com:63306/twitter',
+        'mysql+mysqlconnector://synan:haydegidelum@twitter.ccypzg4lmcfd.eu-north-1.rds.amazonaws.com:3306/twitter',
         echo=False)
-    df.to_sql(name='twitter_analytics', con=engine, if_exists='append', index=False)
+    df.to_sql(name='tweets', con=engine, if_exists='append', index=False)
 
 
 def sentiment_Flair(x):
@@ -56,82 +79,47 @@ sia = TextClassifier.load("en-sentiment")
 
 
 def twapi(username):
+    all = []
     for i in range(0, 20):
         print(len(all))
         if len(all) != 0:
-
             for tweet in api.user_timeline(screen_name=username, max_id=all[-1]["tid"] - 1):
                 if tweet:
                     row = {}
-                    row['tweets'] = tweet.text
+                    row['tweet'] = tweet.text
                     row['time_stamp'] = tweet.created_at.strftime('%Y-%m-%d %H:%M:%S')
                     row['tid'] = tweet.id
                     row['username'] = username
                     all.append(row)
-                else:
-                    continue;
+
+
+
         else:
             for tweet in api.user_timeline(screen_name=username):
                 if tweet:
                     row = {}
-                    row['tweets'] = tweet.text
+                    row['tweet'] = tweet.text
                     row['time_stamp'] = tweet.created_at.strftime('%Y-%m-%d %H:%M:%S')
                     row['tid'] = tweet.id
                     row['username'] = username
                     all.append(row)
-                else:
-                    continue;
+
+
     df = pd.DataFrame(all)
-    df['sentiment_flair'] = df['tweets'].apply(lambda x: sentiment_Flair(x))
+    df['sentiment_flair'] = df['tweet'].apply(lambda x: sentiment_Flair(x))
     df["positive"] = np.where(df["sentiment_flair"] == 'positive', 1, 0)
     df["negative"] = np.where(df["sentiment_flair"] == 'negative', 1, 0)
     dbfonk(df)
+
     return df
 
 
-# print(json.dumps(all))
 
 
-"""
-twt = []
-time = []
+@app.get("/username/{username}")
+def run(username):
+    twapi(username)
+    return {"username": username}
 
-
-alltweets = {}
-
-userlist = ["SkyNews", "BBCWorld", "dwnews", "euronews", "nytimesworld"]
-
-for tweet in public_tweets:
-    row = {}
-    row['tweets'] = tweet.text
-    row['time_stamp'] = tweet.created_at.strftime('%Y-%m-%d %H:%M:%S')
-    row['tid']= tweet.id
-    all.append(row)
-
-
-
-#user_tweets = pd.DataFrame({'tweets': twt, 'time_stamp': time})
-
-#user_tweets[0:5]
-
-# get date
-#user_tweets["time_stamp"] = pd.to_datetime(user_tweets["time_stamp"])
-#user_tweets['time_stamp'] = user_tweets['time_stamp'].apply(lambda x: x.strftime('%Y-%m-%d'))
-"""
-
-# df['time_stamp'] = df['time_stamp'].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
-
-
-# sentiment analysis
-
-
-# print(df)
-
-# user_tweets.to_csv('results.tsv', sep="\t")
-# user_tweets.to_csv('results.csv')
-
-
-# Database func
-
-
-# data = pd.read_sql('SELECT * FROM sample_table', cnx)
+if __name__ == "__main__":
+    uvicorn.run("twapi:app", host="0.0.0.0", port=8000, reload=True)

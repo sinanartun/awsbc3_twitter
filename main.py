@@ -35,7 +35,7 @@ def print_hi(name):
             row['username'] = username
             all.append(row)
         else:
-            continue;
+            continue
 
     print(json.dumps(all, indent=0, sort_keys=True, default=str))
 
