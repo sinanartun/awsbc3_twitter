@@ -58,7 +58,7 @@ all = []
 
 def dbfonk(df):
     engine = create_engine(
-        'mysql+mysqlconnector://synan:haydegidelum@twitter.ccypzg4lmcfd.eu-north-1.rds.amazonaws.com:3306/twitter',
+        'mysql+mysqlconnector://username:password@twitter.ccypzg4lmcfd.eu-north-1.rds.amazonaws.com:3306/twitter',
         echo=False)
     df.to_sql(name='tweets', con=engine, if_exists='append', index=False)
 
